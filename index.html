@@ -1,1 +1,313 @@
-placeholder
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎁 Losowanie prezentów – Wigilia 2026</title>
+<meta name="description" content="Kliknij, wybierz swoje imię i zakręć kołem, żeby wylosować osobę, dla której robisz prezent.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="🎁 Losowanie prezentów – Wigilia 2026">
+<meta property="og:description" content="Kliknij tutaj, wybierz swoje imię i zakręć kołem 🎄">
+<meta property="og:image" content="https://hbieniecka-ctrl.github.io/losowanie/podglad.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f2a1f;--card:#173b2c;--red:#d63b3b;--gold:#f2c14e;--cream:#fff7e8;--muted:#b9cfc3}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font-family:Nunito,system-ui,sans-serif;color:var(--cream);
+    background:radial-gradient(circle at 20% 0%,#24543f 0,var(--bg) 55%) fixed;overflow-x:hidden}
+  .snow{position:fixed;inset:0;pointer-events:none;z-index:0}
+  main{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:28px 18px 60px;text-align:center}
+  h1{font-family:'Mountains of Christmas',cursive;font-size:44px;margin:6px 0 4px;color:var(--gold);text-shadow:0 3px 0 #0006}
+  .sub{color:var(--muted);margin:0 0 22px}
+  .card{background:var(--card);border-radius:20px;padding:20px;box-shadow:0 10px 30px #0005;margin-bottom:16px;text-align:left}
+  label{display:block;font-weight:800;margin:12px 0 6px}
+  textarea,input{width:100%;border:0;border-radius:12px;padding:12px;font:inherit;font-size:16px;background:#fff;color:#222}
+  textarea{min-height:170px;resize:vertical}
+  .row{display:flex;gap:10px}.row>div{flex:1}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+  button,.btn{display:inline-block;border:0;border-radius:999px;padding:14px 22px;font:inherit;font-weight:800;font-size:17px;
+    cursor:pointer;background:var(--red);color:#fff;text-decoration:none;box-shadow:0 4px 0 #8e1f1f;transition:transform .1s}
+  button:active,.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #8e1f1f}
+  button:disabled{opacity:.5;cursor:default}
+  .btn.wa{background:#25d366;box-shadow:0 4px 0 #148a42}
+  .btn.ghost{background:transparent;border:2px solid var(--muted);box-shadow:none;color:var(--cream);font-size:15px;padding:10px 16px}
+  .full{width:100%;margin-top:14px}
+  .err{color:#ffb3b3;font-weight:700;margin-top:10px;min-height:1em}
+  .names{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .names button{background:#fff;color:#173b2c;box-shadow:0 4px 0 #9bb5a8;font-size:16px;padding:12px 18px}
+  .names button.done{background:#8aa699;color:#fff}
+  .info{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+  .pill{background:#ffffff18;border-radius:999px;padding:6px 14px;font-weight:700}
+  .wheelwrap{position:relative;width:min(92vw,420px);margin:10px auto 18px}
+  canvas#wheel{width:100%;height:auto;display:block;border-radius:50%;box-shadow:0 0 0 8px var(--gold),0 0 0 14px #8e6b1c,0 18px 40px #0008}
+  .pointer{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:0;height:0;
+    border-left:20px solid transparent;border-right:20px solid transparent;border-top:42px solid var(--red);filter:drop-shadow(0 3px 2px #0007);z-index:2}
+  .hub{position:absolute;top:50%;left:50%;width:64px;height:64px;transform:translate(-50%,-50%);border-radius:50%;
+    background:var(--gold);display:grid;place-items:center;font-size:30px;box-shadow:0 3px 8px #0007}
+  .result{display:none;background:var(--cream);color:#173b2c;border-radius:20px;padding:22px;margin-top:10px;box-shadow:0 10px 30px #0006}
+  .result .big{font-family:'Mountains of Christmas',cursive;font-size:42px;color:var(--red);margin:6px 0}
+  .linkbox{background:#0d2219;border-radius:12px;padding:10px;font-size:12px;word-break:break-all;color:var(--muted);margin-top:8px}
+  .plist{margin-top:10px}
+  .plist .p{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #ffffff18}
+  .plist .p b{flex:1}
+  .plist .p a,.plist .p button{font-size:13px;padding:8px 12px}
+  details summary{cursor:pointer;font-weight:800;margin-top:6px}
+  .hide{display:none!important}
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:5}
+</style>
+</head>
+<body>
+<canvas class="snow" id="snow"></canvas>
+<canvas id="confetti"></canvas>
+<main>
+
+  <!-- ===== ORGANIZATOR ===== -->
+  <section id="setup">
+    <h1>🎄 Losowanie prezentów</h1>
+    <p class="sub">Wpisz uczestników — dostaniesz link do wrzucenia na WhatsAppa</p>
+    <div class="card">
+      <label for="names">Uczestnicy (każde imię w nowej linii)</label>
+      <textarea id="names" placeholder="Hania&#10;Marta&#10;Mama&#10;Tata&#10;..."></textarea>
+      <div class="row">
+        <div><label for="budget">Budżet</label><input id="budget" placeholder="np. 100 zł"></div>
+        <div><label for="date">Kiedy</label><input id="date" placeholder="np. 24.12"></div>
+      </div>
+      <label for="title">Nazwa (opcjonalnie)</label>
+      <input id="title" placeholder="np. Wigilia 2026">
+      <div class="err" id="err"></div>
+      <button class="full" id="go">🎲 Wylosuj pary i zrób link</button>
+      <p class="hint">Pary losują się od razu i są ukryte w linku. Nikt nie wylosuje siebie, każdy dostaje dokładnie jedną osobę.
+        Organizator też może brać udział — po prostu nie zaglądaj w wyniki innych 😉</p>
+    </div>
+  </section>
+
+  <section id="share" class="hide">
+    <h1>🎁 Gotowe!</h1>
+    <p class="sub">Wyślij ten link na grupę. Każdy klika swoje imię i kręci kołem.</p>
+    <div class="card">
+      <a class="btn wa full" id="waGroup" target="_blank" rel="noopener" style="text-align:center">📲 Wyślij na WhatsApp</a>
+      <button class="full ghost btn" id="copyGroup">📋 Kopiuj wiadomość z linkiem</button>
+      <div class="linkbox" id="groupLink"></div>
+      <details>
+        <summary>🔒 Wersja bardziej tajna: osobne linki</summary>
+        <p class="hint">Każda osoba dostaje własny link i widzi tylko swoje koło — nie da się podejrzeć cudzego wyniku. Wyślij je w prywatnych wiadomościach.</p>
+        <div class="plist" id="plist"></div>
+      </details>
+      <button class="full ghost btn" id="again">↺ Losuj od nowa</button>
+    </div>
+  </section>
+
+  <!-- ===== UCZESTNIK ===== -->
+  <section id="pick" class="hide">
+    <h1 id="evTitle">🎄 Losowanie prezentów</h1>
+    <div class="info" id="evInfo"></div>
+    <div class="card" style="text-align:center">
+      <p style="font-weight:800;font-size:19px;margin:4px 0 14px">Kim jesteś? 👇</p>
+      <div class="names" id="nameBtns"></div>
+      <p class="hint" style="text-align:center">Kliknij tylko swoje imię — wynik jest tajny 🤫</p>
+    </div>
+  </section>
+
+  <section id="spin" class="hide">
+    <h1 id="hello">Cześć!</h1>
+    <div class="info" id="evInfo2"></div>
+    <div class="wheelwrap">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="840" height="840"></canvas>
+      <div class="hub">🎁</div>
+    </div>
+    <button id="spinBtn">🎡 Kręć kołem!</button>
+    <div class="result" id="result">
+      <div>Robisz prezent dla:</div>
+      <div class="big" id="who"></div>
+      <div id="resInfo" style="font-weight:700"></div>
+      <p style="font-size:14px;margin:12px 0 0">Zrób zrzut ekranu i nikomu nie mów! 🤐</p>
+    </div>
+    <p><button class="btn ghost" id="back" style="margin-top:18px">← Wróć</button></p>
+  </section>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const COLORS=['#d63b3b','#1f7a4d','#f2c14e','#2e6fb7','#c2577f','#e07b2a','#3aa59a','#7a4fb3'];
+const KEY=[71,105,102,116,121,33,226,157,132];
+const PRESET='g3c4b0856437ac0dce82e0707565503a3f9e52a4b4a563440271fe3281b1c150d40c0b1a6130802110c5298bfa8652c11155b0dc0daf63d0c011b0b5bc0b1a60a0814001803cebfcc260708155b0dc0d6e53308141d1740c2b5cf261d0f155003cebfd42e0c151f1001120214f1492c11174f9bb1a40408081000018bbd41c60604010303bfb1a6374b5c2f4d0dd4b1b36b584a4d5512ceafa87f4556584c7ccebfe6655344101601d0adb46713a3f65b0dc0f9a67d4b311d1e488ef4e5675b525a4813c0b1a6334b5c562e4885f4e82e0846464913d4bff9';
+
+/* ---------- kodowanie danych w linku (tylko litery i cyfry) ---------- */
+function encode(obj){
+  const bytes=new TextEncoder().encode(JSON.stringify(obj));
+  let s='';bytes.forEach((b,i)=>{s+=((b^KEY[i%KEY.length])&255).toString(16).padStart(2,'0')});
+  return 'g'+s;
+}
+function decode(str){
+  if(!str||str[0]!=='g')return null;
+  const hex=str.slice(1);if(hex.length%2)return null;
+  const bytes=new Uint8Array(hex.length/2);
+  for(let i=0;i<bytes.length;i++){const v=parseInt(hex.substr(i*2,2),16);if(isNaN(v))return null;bytes[i]=v^KEY[i%KEY.length]}
+  try{return JSON.parse(new TextDecoder().decode(bytes))}catch(e){return null}
+}
+function baseUrl(){return location.href.split('#')[0]}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+
+/* ---------- losowanie: algorytm Sattolo = jeden wspólny krąg, nikt nie trafia na siebie ---------- */
+function derange(n){
+  const a=[...Array(n).keys()];
+  for(let i=n-1;i>0;i--){const j=Math.floor(Math.random()*i);[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+
+function show(id){['setup','share','pick','spin'].forEach(s=>$(s).classList.toggle('hide',s!==id));window.scrollTo(0,0)}
+
+/* ---------- ORGANIZATOR ---------- */
+$('go').onclick=()=>{
+  const names=$('names').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const uniq=new Set(names.map(n=>n.toLowerCase()));
+  if(names.length<3){$('err').textContent='Potrzeba co najmniej 3 osób.';return}
+  if(uniq.size!==names.length){$('err').textContent='Imiona się powtarzają — dodaj np. inicjał nazwiska.';return}
+  $('err').textContent='';
+  const data={n:names,p:derange(names.length),b:$('budget').value.trim(),d:$('date').value.trim(),t:$('title').value.trim()};
+  const code=encode(data);
+  const link=baseUrl()+'#'+code;
+  const title=data.t||'Losowanie prezentów';
+  let msg='🎄 '+title+' 🎁\nKliknij link, wybierz swoje imię i zakręć kołem, żeby wylosować osobę, dla której robisz prezent!';
+  if(data.b)msg+='\n💰 Budżet: '+data.b;
+  if(data.d)msg+='\n📅 Kiedy: '+data.d;
+  msg+='\n\n'+link;
+  $('groupLink').textContent=link;
+  $('waGroup').href='https://wa.me/?text='+encodeURIComponent(msg);
+  $('copyGroup').onclick=()=>copy(msg,$('copyGroup'));
+  const pl=$('plist');pl.innerHTML='';
+  names.forEach((nm,i)=>{
+    const pLink=link+'-'+i;
+    const pMsg='🎁 '+nm+', to Twój tajny link do losowania ('+title+'):\n'+pLink;
+    const row=document.createElement('div');row.className='p';
+    const b=document.createElement('b');b.textContent=nm;
+    const wa=document.createElement('a');wa.className='btn wa';wa.target='_blank';wa.rel='noopener';wa.textContent='WhatsApp';
+    wa.href='https://wa.me/?text='+encodeURIComponent(pMsg);
+    const cp=document.createElement('button');cp.className='btn ghost';cp.textContent='Kopiuj';cp.onclick=()=>copy(pMsg,cp);
+    row.append(b,wa,cp);pl.append(row);
+  });
+  show('share');
+};
+$('again').onclick=()=>show('setup');
+
+function copy(text,btn){
+  const old=btn.textContent;
+  const done=ok=>{btn.textContent=ok?'✅ Skopiowane!':'Zaznacz i skopiuj ręcznie';setTimeout(()=>btn.textContent=old,1800)};
+  try{navigator.clipboard.writeText(text).then(()=>done(true),()=>done(false))}catch(e){done(false)}
+}
+
+/* ---------- UCZESTNIK ---------- */
+let D=null,me=-1,rot=0,spinning=false,spun=false;
+function infoPills(el){
+  el.innerHTML='';
+  if(D.b){const s=document.createElement('span');s.className='pill';s.textContent='💰 '+D.b;el.append(s)}
+  if(D.d){const s=document.createElement('span');s.className='pill';s.textContent='📅 '+D.d;el.append(s)}
+}
+function startParticipant(code){
+  let fixed=null;
+  const m=code.match(/^(g[0-9a-f]+)-(\d+)$/);
+  if(m){code=m[1];fixed=+m[2]}
+  D=decode(code);
+  if(!D||!Array.isArray(D.n)){show('setup');return}
+  $('evTitle').textContent='🎄 '+(D.t||'Losowanie prezentów');
+  infoPills($('evInfo'));infoPills($('evInfo2'));
+  if(fixed!==null&&D.n[fixed]!==undefined){$('back').classList.add('hide');openWheel(fixed);return}
+  const box=$('nameBtns');box.innerHTML='';
+  const drawn=JSON.parse(store('drawn_'+code.slice(0,40))||'[]');
+  D.n.forEach((nm,i)=>{
+    const b=document.createElement('button');b.textContent=(drawn.includes(i)?'✓ ':'')+nm;
+    if(drawn.includes(i))b.classList.add('done');
+    b.onclick=()=>openWheel(i);box.append(b);
+  });
+  show('pick');
+}
+function openWheel(i){
+  me=i;spun=false;rot=0;
+  $('hello').textContent='Cześć, '+D.n[i]+'! 👋';
+  $('result').style.display='none';$('spinBtn').disabled=false;$('spinBtn').classList.remove('hide');
+  wheelNames=D.n.map((n,k)=>({n,k})).filter(o=>o.k!==i);
+  for(let a=wheelNames.length-1;a>0;a--){const j=Math.floor(Math.random()*(a+1));[wheelNames[a],wheelNames[j]]=[wheelNames[j],wheelNames[a]]}
+  drawWheel();show('spin');
+}
+$('back').onclick=()=>{if(!spinning){const h=location.hash.slice(1);startParticipant(h&&h[0]==='g'?h:PRESET)}};
+
+let wheelNames=[];
+function drawWheel(){
+  const c=$('wheel'),x=c.getContext('2d'),R=c.width/2,n=wheelNames.length,a=2*Math.PI/n;
+  x.clearRect(0,0,c.width,c.height);
+  x.save();x.translate(R,R);x.rotate(rot);
+  wheelNames.forEach((o,i)=>{
+    x.beginPath();x.moveTo(0,0);x.arc(0,0,R,i*a,(i+1)*a);x.closePath();
+    x.fillStyle=COLORS[i%COLORS.length];if(n%COLORS.length===1&&i===n-1)x.fillStyle=COLORS[3];
+    x.fill();x.strokeStyle='#fff7e8';x.lineWidth=4;x.stroke();
+    x.save();x.rotate(i*a+a/2);x.textAlign='right';x.textBaseline='middle';
+    const col=x.fillStyle;x.fillStyle=(col==='#f2c14e')?'#173b2c':'#fff';
+    let fs=Math.min(54,Math.max(26,R*a*0.55));x.font='800 '+fs+'px Nunito, sans-serif';
+    let t=o.n;while(x.measureText(t).width>R-120&&fs>22){fs-=2;x.font='800 '+fs+'px Nunito, sans-serif'}
+    while(x.measureText(t).width>R-120&&t.length>3)t=t.slice(0,-2)+'…';
+    x.fillText(t,R-28,0);x.restore();
+  });
+  x.restore();
+}
+$('spinBtn').onclick=()=>{
+  if(spinning||spun)return;
+  spinning=true;$('spinBtn').disabled=true;
+  const target=D.p[me];
+  const idx=wheelNames.findIndex(o=>o.k===target);
+  const n=wheelNames.length,a=2*Math.PI/n;
+  const jitter=(Math.random()-.5)*a*0.6;
+  let end=-Math.PI/2-(idx+.5)*a+jitter;
+  const start=rot;
+  while(end<start)end+=2*Math.PI;
+  end+=2*Math.PI*(6+Math.floor(Math.random()*3));
+  const dur=5200,t0=performance.now();
+  (function step(now){
+    const t=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-t,4);
+    rot=start+(end-start)*e;drawWheel();
+    if(t<1)requestAnimationFrame(step);else finish(target);
+  })(t0);
+};
+function finish(target){
+  spinning=false;spun=true;$('spinBtn').classList.add('hide');
+  $('who').textContent=D.n[target];
+  $('resInfo').textContent=[D.b?'💰 '+D.b:'',D.d?'📅 '+D.d:''].filter(Boolean).join('   ');
+  $('result').style.display='block';
+  $('result').scrollIntoView({behavior:'smooth',block:'center'});
+  const code=(location.hash.slice(1)||PRESET).replace(/-\d+$/,'');
+  const k='drawn_'+code.slice(0,40);const d=JSON.parse(store(k)||'[]');if(!d.includes(me)){d.push(me);store(k,JSON.stringify(d))}
+  confetti();
+}
+
+/* ---------- efekty ---------- */
+function confetti(){
+  const c=$('confetti'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
+  const P=[...Array(160)].map(()=>({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,vx:(Math.random()-.5)*4,vy:2+Math.random()*4,
+    s:6+Math.random()*8,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:COLORS[Math.floor(Math.random()*COLORS.length)]}));
+  const t0=performance.now();
+  (function f(now){
+    x.clearRect(0,0,c.width,c.height);
+    P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.r+=p.vr;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore()});
+    if(now-t0<4500)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);
+  })(t0);
+}
+(function snow(){
+  const c=$('snow'),x=c.getContext('2d');let F=[];
+  function size(){c.width=innerWidth;c.height=innerHeight;F=[...Array(70)].map(()=>({x:Math.random()*c.width,y:Math.random()*c.height,r:1+Math.random()*2.5,v:.3+Math.random()*.8}))}
+  size();addEventListener('resize',size);
+  (function f(){x.clearRect(0,0,c.width,c.height);x.fillStyle='#ffffffaa';
+    F.forEach(p=>{p.y+=p.v;p.x+=Math.sin(p.y/40)*.3;if(p.y>c.height){p.y=-5;p.x=Math.random()*c.width}x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill()});
+    requestAnimationFrame(f)})();
+})();
+
+/* ---------- start ---------- */
+function route(){const h=location.hash.slice(1);if(h==='nowe'){show('setup');return}if(h&&h[0]==='g')startParticipant(h);else startParticipant(PRESET)}
+addEventListener('hashchange',route);
+route();
+})();
+</script>
+</body>
+</html>
